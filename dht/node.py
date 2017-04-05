@@ -1,11 +1,9 @@
-import copy
 import json
-import socket
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
-from datetime import datetime
 
-from ..utils import setup_logger
-import ..settings
+from utils import setup_logger, call_remote_function
+import settings
+
 
 class Node(object):
     ALLOWED_ACTIONS = {'set_previous'}
@@ -43,9 +41,15 @@ class Node(object):
         self.ip = ip
         self.port = port
         self.tcp_server = ThreadingTCPServer(
-            (host, port),
+            (ip, port),
             Node.RequestHandler.handler_factory(self)
         )
+        self.prevnode_id = None
+        self.prevnode_ip = None
+        self.nextnode_id = None
+        self.nextnode_ip = None
+        self.second_nextnode_id = None
+        self.second_nextnode_ip = None
 
     def dispatch(self, request):
         action = request.pop('action')
@@ -65,20 +69,28 @@ class Node(object):
         self.dictionary[key] = value
 
     def store(self, key, value):
-        direction = self.get_movement_direction(key)
+        direction = self._get_movement_direction(key)
         if direction == 'local':
             self._store_local(key, value)
         elif direction == 'next':
-            call_remote_function((self.nextnode_ip, self.port),
-                                 'store', key=key, value=value)
+            call_remote_function(
+                (self.nextnode_ip, self.port),
+                function='store',
+                key=key,
+                value=value
+            )
         else:
-            call_remote_function((self.prevnode_ip, self.port),
-                                 'store', key=key, value=value)
+            call_remote_function(
+                (self.prevnode_ip, self.port),
+                function='store',
+                key=key,
+                value=value
+            )
 
     def _retrieve_local(self, key):
         return self.dictionary[key]
 
-    def get_movement_direction(self, key):
+    def _get_movement_direction(self, key):
         if key > self.id_number:
             if self.id_number > self.nextnode_id:
                 return 'local'
@@ -89,16 +101,28 @@ class Node(object):
             return 'local'
     
     def query(self, key, recipient_ip):
-        direction = self.get_movement_direction(key)
+        direction = self._get_movement_direction(key)
         if direction == 'local':
-            call_remote_function((recipient_ip, self.port),
-                                 'query_response', key=key, value=value)
+            call_remote_function(
+                (recipient_ip, self.port),
+                function='query_response',
+                key=key,
+                value=self._retrieve_local(key)
+            )
         elif direction == 'next':
-            call_remote_function((self.nextnode_ip, self.port),
-                                 'query', key=key, recipient_ip=recipient_ip)
+            call_remote_function(
+                (self.nextnode_ip, self.port),
+                function='query',
+                key=key,
+                recipient_ip=recipient_ip
+            )
         else:
-            call_remote_function((self.prevnode_ip, self.port),
-                                 'query', key=key, recipient_ip=recipient_ip)
+            call_remote_function(
+                (self.prevnode_ip, self.port),
+                function='query',
+                key=key,
+                recipient_ip=recipient_ip
+            )
                 
     def query_response(self, key, value):
         print 'received data'+str(key)+": "+str(value)
