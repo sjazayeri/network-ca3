@@ -1,7 +1,8 @@
 import json
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 
-from utils import setup_logger, call_remote_function
+from utils import setup_logger
+from node_proxy import NodeProxy
 import settings
 
 
@@ -44,13 +45,17 @@ class Node(object):
             (ip, port),
             Node.RequestHandler.handler_factory(self)
         )
-        self.prevnode_id = None
-        self.prevnode_ip = None
-        self.nextnode_id = None
-        self.nextnode_ip = None
-        self.second_nextnode_id = None
-        self.second_nextnode_ip = None
+        # self.prevnode_id = None
+        # self.prevnode_ip = None
+        # self.nextnode_id = None
+        # self.nextnode_ip = None
+        # self.second_nextnode_id = None
+        # self.second_nextnode_ip = None
 
+        self.prev_node = None
+        self.next_node = None
+        self.second_next_node = None
+        
     def dispatch(self, request):
         action = request.pop('action')
 
@@ -61,10 +66,9 @@ class Node(object):
                 self.logger.error(str(self.id_number)+" "+str(e.message))
                 return {'details': "bad request"}
         
-    def set_previous(self, prevnode_ip, prevnode_id):
-        self.prevnode_id = prevnode_id
-        self.prevnode_ip = prevnode_ip
-
+    def set_prev_node(self, prev_node_ip, prev_node_id):
+        self.prev_node = NodeProxy(prev_node_ip, self.port, prev_node_id)
+        
     def _store_local(self, key, value):
         self.dictionary[key] = value
 
@@ -73,19 +77,9 @@ class Node(object):
         if direction == 'local':
             self._store_local(key, value)
         elif direction == 'next':
-            call_remote_function(
-                (self.nextnode_ip, self.port),
-                function='store',
-                key=key,
-                value=value
-            )
+            self.next_node.store(key=key, value=value)
         else:
-            call_remote_function(
-                (self.prevnode_ip, self.port),
-                function='store',
-                key=key,
-                value=value
-            )
+            self.prev_node.store(key=key, value=value)
 
     def _retrieve_local(self, key):
         return self.dictionary[key]
@@ -103,31 +97,34 @@ class Node(object):
     def query(self, key, recipient_ip):
         direction = self._get_movement_direction(key)
         if direction == 'local':
-            call_remote_function(
-                (recipient_ip, self.port),
-                function='query_response',
-                key=key,
-                value=self._retrieve_local(key)
-            )
+            value = self._retrieve_local(key)
+            NodeProxy(recipient_ip, self.port).query_response(key=key, value=value)
         elif direction == 'next':
-            call_remote_function(
-                (self.nextnode_ip, self.port),
-                function='query',
-                key=key,
-                recipient_ip=recipient_ip
-            )
+            self.next_node.query(key=key, recipient_ip=recipient_ip)
         else:
-            call_remote_function(
-                (self.prevnode_ip, self.port),
-                function='query',
-                key=key,
-                recipient_ip=recipient_ip
-            )
+            self.prev_node.query(key=key, recipient_ip=recipient_ip)
                 
     def query_response(self, key, value):
         print 'received data'+str(key)+": "+str(value)
 
-    def join(self, id_number, ip):
+    def join(self, id_number, recipient_ip):
+        recipient = NodeProxy(recipient_ip, self.port, id_number)
+        if id_number == self.id_number:
+            recipient.join_response_failure(message='id in use')
+        elif id_number < self.id_number:
+            call_remote_function(
+                (self.prevnode_ip, self.port),
+                'join',
+                id_number=id_number,
+                recipient_ip=recipient_ip
+            )
+            self.prev_node.join(id_number=id_number, recipient_ip=recipient_ip)
+        elif id_number > self.nextnode_id:
+            self.next_node.join(id_number=id_number, recipient_ip=recipient_ip)
+        else:
+            self._add_to_network(id_number, recipient_ip)
+
+    def _add_to_network(self, id_number, recipient_ip):
         pass
 
     def get_next(self):

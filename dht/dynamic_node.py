@@ -30,7 +30,7 @@ class DynamicNode(Node):
 
             self.wait_for_join_response = True
             call_remote_function((selected_ip, selected_port),
-                                 'join', id_number=my_id, ip=self.ip)
+                                 'join', id_number=my_id, recipient_ip=self.ip)
 
             while self.wait_for_join_response:
                 time.sleep(1)
