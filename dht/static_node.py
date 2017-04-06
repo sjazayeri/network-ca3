@@ -1,26 +1,25 @@
 import threading
 
 from node import Node
-from utils import call_remote_function
+from node_proxy import NodeProxy
 
 
 class StaticNode(Node):
-    def __init__(self, next_peer_id, next_peer_ip, *args, **kwargs):
+    def __init__(self, next_node_id, next_node_ip, *args, **kwargs):
         super(StaticNode, self).__init__(*args, **kwargs)
-        self.next_peer_id = next_peer_id
-        self.next_peer_ip = next_peer_ip
-        
+        self.next_node = NodeProxy(next_node_ip, self.node.port, next_node_id)
+
     def run(self):
         server_thread = threading.Thread(target=self.tcp_server.serve_forever)
         server_thread.start()
-        self.notify_next()
-        
-    def notify_next(self):
-        response = call_remote_function(
-            (self.next_peer_ip, self.port),
-            function='set_previous',
-            prevnode_id=self.id_number,
-            prevnode_ip=self.ip
+        self._notify_next()
+        self._set_second_next_node()
+
+    def _set_second_next_node(self):
+        pass
+
+    def _notify_next(self):
+        self.next_node.set_prev_node(
+            prev_node_ip=self.node.ip,
+            prev_node_id=self.node.id_number
         )
-        self.second_nextnode_id = response['nextnode_id']
-        self.second_nextnode_ip = response['nextnode_ip']

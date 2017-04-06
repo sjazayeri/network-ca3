@@ -3,7 +3,7 @@ import time
 from random import randint
 
 from node import Node
-from utils import call_remote_function
+from node_proxy import NodeProxy
 
 
 class DynamicNode(Node):
@@ -22,28 +22,23 @@ class DynamicNode(Node):
     def _join_network(self):
         while not self.joined:
             node_index = randint(0, len(self.node_list))
-            selected_ip, selected_port, selected_id =\
-                self.node_list[node_index]
-            _, _, next_id = self.node_list[node_index+1]
+            selected_node = NodeProxy(*self.node_list[node_index])
+            _, _, next_id_number = self.node_list[node_index+1]
             
-            my_id = randint(selected_id+1, next_id)
+            my_id = randint(selected_node.id_number+1, next_id_number)
 
             self.wait_for_join_response = True
-            call_remote_function((selected_ip, selected_port),
-                                 'join', id_number=my_id, recipient_ip=self.ip)
+            selected_node.join(id_number=my_id, recipient_ip=self.node.ip)
 
             while self.wait_for_join_response:
                 time.sleep(1)
 
     def join_response_success(self, previous_ip, previous_id, next_ip,
                               next_id, second_next_ip, second_next_id):
-        self.prevnode_ip = previous_ip
-        self.prevnode_id = previous_id
-        self.nextnode_ip = next_ip
-        self.nextnode_id = next_id
-        self.second_nextnode_ip = second_next_ip
-        self.second_nextnode_id = second_next_id
-
+        self.prev_node = NodeProxy(previous_ip, self.node.port, previous_id)
+        self.next_node = NodeProxy(next_ip, self.node.port, next_id)
+        self.second_next_node = NodeProxy(second_next_ip, self.node.port,
+                                          second_next_id)
         self.joined = True
         self.wait_for_join_response = False
 

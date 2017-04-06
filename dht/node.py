@@ -38,20 +38,11 @@ class Node(object):
     def __init__(self, ip, port, id_number):
         self.logger = setup_logger(str(id_number))
         self.dictionary = dict()
-        self.id_number = id_number
-        self.ip = ip
-        self.port = port
         self.tcp_server = ThreadingTCPServer(
             (ip, port),
             Node.RequestHandler.handler_factory(self)
         )
-        # self.prevnode_id = None
-        # self.prevnode_ip = None
-        # self.nextnode_id = None
-        # self.nextnode_ip = None
-        # self.second_nextnode_id = None
-        # self.second_nextnode_ip = None
-
+        self.node = NodeProxy(ip, port, id_number)
         self.prev_node = None
         self.next_node = None
         self.second_next_node = None
@@ -63,11 +54,11 @@ class Node(object):
             try:
                 return getattr(self, action)(**request)
             except Exception as e:
-                self.logger.error(str(self.id_number)+" "+str(e.message))
+                self.logger.error(str(self.node.id_number)+" "+str(e.message))
                 return {'details': "bad request"}
         
     def set_prev_node(self, prev_node_ip, prev_node_id):
-        self.prev_node = NodeProxy(prev_node_ip, self.port, prev_node_id)
+        self.prev_node = NodeProxy(prev_node_ip, self.node.port, prev_node_id)
         
     def _store_local(self, key, value):
         self.dictionary[key] = value
@@ -85,11 +76,11 @@ class Node(object):
         return self.dictionary[key]
 
     def _get_movement_direction(self, key):
-        if key > self.id_number:
-            if self.id_number > self.nextnode_id:
+        if key > self.node.id_number:
+            if self.node.id_number > self.next_node.id:
                 return 'local'
             return 'next'
-        elif key < self.prevnode_id:
+        elif key < self.prev_node.id:
             return 'previous'
         else:
             return 'local'
@@ -97,8 +88,10 @@ class Node(object):
     def query(self, key, recipient_ip):
         direction = self._get_movement_direction(key)
         if direction == 'local':
-            value = self._retrieve_local(key)
-            NodeProxy(recipient_ip, self.port).query_response(key=key, value=value)
+            NodeProxy(
+                recipient_ip,
+                self.node.port
+            ).query_response(key=key, value=self._retrieve_local(key))
         elif direction == 'next':
             self.next_node.query(key=key, recipient_ip=recipient_ip)
         else:
@@ -108,18 +101,14 @@ class Node(object):
         print 'received data'+str(key)+": "+str(value)
 
     def join(self, id_number, recipient_ip):
-        recipient = NodeProxy(recipient_ip, self.port, id_number)
-        if id_number == self.id_number:
+        recipient = NodeProxy(recipient_ip, self.node.port, id_number)
+        if id_number == self.node.id_number:
             recipient.join_response_failure(message='id in use')
-        elif id_number < self.id_number:
-            call_remote_function(
-                (self.prevnode_ip, self.port),
-                'join',
-                id_number=id_number,
-                recipient_ip=recipient_ip
-            )
+        elif id_number < self.node.id_number:
+            self.prev_node.join(id_number=id_number,
+                                recipient_ip=recipient_ip)
             self.prev_node.join(id_number=id_number, recipient_ip=recipient_ip)
-        elif id_number > self.nextnode_id:
+        elif id_number > self.next_node.id:
             self.next_node.join(id_number=id_number, recipient_ip=recipient_ip)
         else:
             self._add_to_network(id_number, recipient_ip)

@@ -1,5 +1,6 @@
 from utils import call_remote_function
 
+
 class NodeProxy(object):
     def __init__(self, ip, port, id_number=None):
         self.ip = ip
