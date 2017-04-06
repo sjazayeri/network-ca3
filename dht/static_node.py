@@ -5,9 +5,9 @@ from node_proxy import NodeProxy
 
 
 class StaticNode(Node):
-    def __init__(self, next_node_id, next_node_ip, *args, **kwargs):
+    def __init__(self, next_node_ip, next_node_port, next_node_id, *args, **kwargs):
         super(StaticNode, self).__init__(*args, **kwargs)
-        self.next_node = NodeProxy(next_node_ip, self.node.port, next_node_id)
+        self.next_node = NodeProxy(next_node_ip, next_node_port, next_node_id)
 
     def run(self):
         server_thread = threading.Thread(target=self.tcp_server.serve_forever)
@@ -21,5 +21,6 @@ class StaticNode(Node):
     def _notify_next(self):
         self.next_node.set_prev_node(
             prev_node_ip=self.node.ip,
+            prev_node_port=self.node.port,
             prev_node_id=self.node.id_number
         )
