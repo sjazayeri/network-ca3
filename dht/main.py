@@ -2,17 +2,17 @@
 
 import sys
 from static_node import StaticNode
-from dynamic_node import DynamicNode
 
 if __name__ == '__main__':
     if sys.argv[1] == '--static':
-        next_ip = sys.argv[2]
-        next_port = int(sys.argv[3])
-        next_id = int(sys.argv[4])
-        self_ip = sys.argv[5]
-        self_port = int(sys.argv[6])
-        self_id = int(sys.argv[7])
-        node = StaticNode(next_ip, next_port, next_id, self_ip, self_port, self_id)
+        node = StaticNode(
+            next_node_ip=sys.argv[2],
+            next_node_port=int(sys.argv[3]),
+            next_node_id=int(sys.argv[4]),
+            ip=sys.argv[5],
+            port=int(sys.argv[6]),
+            id_number=int(sys.argv[7])
+        )
         node.run()
         
         while True:
@@ -24,4 +24,3 @@ if __name__ == '__main__':
                 print 'fucked up son: '+e.message
     elif sys.argv[1] == '--dynamic':
         pass
-    
