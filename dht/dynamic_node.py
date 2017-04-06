@@ -22,7 +22,8 @@ class DynamicNode(Node):
     def _join_network(self):
         while not self.joined:
             node_index = randint(0, len(self.node_list))
-            selected_ip, selected_port, selected_id = self.node_list[node_index]
+            selected_ip, selected_port, selected_id =\
+                self.node_list[node_index]
             _, _, next_id = self.node_list[node_index+1]
             
             my_id = randint(selected_id+1, next_id)
@@ -34,9 +35,8 @@ class DynamicNode(Node):
             while self.wait_for_join_response:
                 time.sleep(1)
 
-    def join_response_success(self, previous_ip, previous_id,
-                          next_ip, next_id,
-                          second_next_ip, second_next_id):
+    def join_response_success(self, previous_ip, previous_id, next_ip,
+                              next_id, second_next_ip, second_next_id):
         self.prevnode_ip = previous_ip
         self.prevnode_id = previous_id
         self.nextnode_ip = next_ip
@@ -49,4 +49,3 @@ class DynamicNode(Node):
 
     def join_response_failure(self, message):
         self.logger.debug("join failed because "+message)
-        
