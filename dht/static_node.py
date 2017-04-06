@@ -5,7 +5,8 @@ from node_proxy import NodeProxy
 
 
 class StaticNode(Node):
-    def __init__(self, next_node_ip, next_node_port, next_node_id, *args, **kwargs):
+    def __init__(self, next_node_ip, next_node_port, next_node_id, *args,
+                 **kwargs):
         super(StaticNode, self).__init__(*args, **kwargs)
         self.next_node = NodeProxy(next_node_ip, next_node_port, next_node_id)
 

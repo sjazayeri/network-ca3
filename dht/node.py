@@ -171,6 +171,6 @@ class Node(object):
     def get_next_node(self):
         return {
             'ip': self.next_node.ip,
-            'port': self.next_node.port
+            'port': self.next_node.port,
             'id_number': self.next_node.id_number
         }
