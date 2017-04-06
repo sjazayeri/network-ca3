@@ -13,7 +13,8 @@ class Node(object):
         'query',
         'query_response',
         'join',
-        'set_second_next'
+        'set_second_next',
+        'get_next_node'
     }
     
     class RequestHandler(BaseRequestHandler):
@@ -166,3 +167,10 @@ class Node(object):
                         second_next_id):
         self.second_next_node = NodeProxy(second_next_ip, second_next_port,
                                           second_next_id)
+
+    def get_next_node(self):
+        return {
+            'ip': self.next_node.ip,
+            'port': self.next_node.port
+            'id_number': self.next_node.id_number
+        }

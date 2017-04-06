@@ -16,7 +16,8 @@ class StaticNode(Node):
         self._set_second_next_node()
 
     def _set_second_next_node(self):
-        pass
+        response = self.next_node.get_next_node()
+        self.second_next_node = NodeProxy(**response)
 
     def _notify_next(self):
         self.next_node.set_prev_node(
