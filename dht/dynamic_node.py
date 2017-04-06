@@ -7,16 +7,14 @@ from node_proxy import NodeProxy
 
 
 class DynamicNode(Node):
-    ALLOWED_ACTIONS = Node.ALLOWED_ACTIONS.union(
-        {
-            'join_response_success',
-            'join_response_failure'
-        }
-    )
-    
+    ALLOWED_ACTIONS = Node.ALLOWED_ACTIONS.union({
+        'join_response_success',
+        'join_response_failure'
+    })
+
     def __init__(self, node_list, *args, **kwargs):
         super(DynamicNode, self).__init__(*args, **kwargs)
-        
+
         self.node_list = node_list
         self.joined = False
         self.wait_for_join_response = None
@@ -25,13 +23,13 @@ class DynamicNode(Node):
         server_thread = threading.Thread(target=self.tcp_server.serve_forever)
         server_thread.start()
         self._join_network()
-        
+
     def _join_network(self):
         while not self.joined:
             node_index = randint(0, len(self.node_list))
             selected_node = NodeProxy(*self.node_list[node_index])
             _, _, next_id_number = self.node_list[node_index+1]
-            
+
             my_id = randint(selected_node.id_number+1, next_id_number)
 
             self.wait_for_join_response = True
@@ -40,9 +38,9 @@ class DynamicNode(Node):
             while self.wait_for_join_response:
                 time.sleep(1)
 
-    def join_response_success(self, prev_ip, prev_port, prev_id,
-                              next_ip, next_port, next_id,
-                              second_next_ip, second_next_port, second_next_id):
+    def join_response_success(self, prev_ip, prev_port, prev_id, next_ip,
+                              next_port, next_id, second_next_ip,
+                              second_next_port, second_next_id):
         self.prev_node = NodeProxy(prev_ip, prev_port, prev_id)
         self.next_node = NodeProxy(next_ip, next_port, next_id)
         self.second_next_node = NodeProxy(second_next_ip, second_next_port,

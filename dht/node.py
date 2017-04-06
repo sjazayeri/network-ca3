@@ -162,6 +162,7 @@ class Node(object):
             second_next_id=self.next_node.id_number
         )
 
-    def set_second_next(self, second_next_ip, second_next_port, second_next_id):
+    def set_second_next(self, second_next_ip, second_next_port,
+                        second_next_id):
         self.second_next_node = NodeProxy(second_next_ip, second_next_port,
                                           second_next_id)
