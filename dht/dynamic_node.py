@@ -50,3 +50,4 @@ class DynamicNode(Node):
 
     def join_response_failure(self, message):
         self.logger.debug("join failed because "+message)
+        
