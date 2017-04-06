@@ -6,7 +6,7 @@ import settings
 
 
 class Node(object):
-    ALLOWED_ACTIONS = {'set_previous'}
+    ALLOWED_ACTIONS = {'set_previous', 'store', 'query', 'query_response'}
     
     class RequestHandler(BaseRequestHandler):
         def __init__(self, node, *args, **kwargs):
@@ -61,7 +61,7 @@ class Node(object):
                 self.logger.error(str(self.id_number)+" "+str(e.message))
                 return {'details': "bad request"}
         
-    def set_previous(self, prevnode_id, prevnode_ip):
+    def set_previous(self, prevnode_ip, prevnode_id):
         self.prevnode_id = prevnode_id
         self.prevnode_ip = prevnode_ip
 
@@ -127,5 +127,14 @@ class Node(object):
     def query_response(self, key, value):
         print 'received data'+str(key)+": "+str(value)
 
-    def ping(self):
+    def join(self, id_number, ip):
+        pass
+
+    def get_next(self):
+        pass
+
+    def set_next(self, next_ip, next_id):
+        pass
+
+    def set_second_next(self, second_next_ip, second_next_id):
         pass
