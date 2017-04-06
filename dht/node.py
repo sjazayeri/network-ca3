@@ -7,7 +7,7 @@ import settings
 
 
 class Node(object):
-    ALLOWED_ACTIONS = {'set_previous', 'store', 'query', 'query_response'}
+    ALLOWED_ACTIONS = {'set_prev_node', 'store', 'query', 'query_response'}
     
     class RequestHandler(BaseRequestHandler):
         def __init__(self, node, *args, **kwargs):
@@ -112,15 +112,29 @@ class Node(object):
             self.next_node.join(id_number=id_number, recipient_ip=recipient_ip)
         else:
             self._add_to_network(id_number, recipient_ip)
-
+            
     def _add_to_network(self, id_number, recipient_ip):
-        pass
+        self.prev_node.set_second_next(
+            second_next_ip=recipient_ip,
+            second_next_id=id_number
+        )
+        self.next_node.set_prev_node(
+            prev_node_ip=recipient_ip,
+            prev_node_id=id_number
+        )
 
-    def get_next(self):
-        pass
-
-    def set_next(self, next_ip, next_id):
-        pass
+        tmp_next_node = self.next_node
+        self.second_next_node = self.next_node
+        self.next_node = NodeProxy(recipient_ip, self.port, id_number)
+        
+        recipient.join_response_success(
+                prev_ip=self.node.ip,
+                prev_id=self.node.id_number,
+                next_ip=self.tmp_next_node.ip,
+                next_id=self.tmp_next_node.id_number,
+                second_next_ip=self.next_node.ip,
+                second_next_id=self.next_node.id_number
+        )
 
     def set_second_next(self, second_next_ip, second_next_id):
-        pass
+        self.second_next_node = NodeProxy(second_next_ip, self.port, second_next_id)
