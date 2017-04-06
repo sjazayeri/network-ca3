@@ -125,16 +125,19 @@ class Node(object):
 
         tmp_next_node = self.next_node
         self.second_next_node = self.next_node
-        self.next_node = NodeProxy(recipient_ip, self.port, id_number)
+        self.next_node = NodeProxy(recipient_ip, self.node.port, id_number)
         
+        recipient = NodeProxy(recipient_ip, self.node.port, id_number)
+
         recipient.join_response_success(
                 prev_ip=self.node.ip,
                 prev_id=self.node.id_number,
-                next_ip=self.tmp_next_node.ip,
-                next_id=self.tmp_next_node.id_number,
+                next_ip=tmp_next_node.ip,
+                next_id=tmp_next_node.id_number,
                 second_next_ip=self.next_node.ip,
                 second_next_id=self.next_node.id_number
         )
 
     def set_second_next(self, second_next_ip, second_next_id):
-        self.second_next_node = NodeProxy(second_next_ip, self.port, second_next_id)
+        self.second_next_node = NodeProxy(second_next_ip, self.node.port,
+                                          second_next_id)
