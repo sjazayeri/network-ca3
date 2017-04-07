@@ -44,9 +44,11 @@ class DynamicNode(Node):
             while self.wait_for_join_response:
                 time.sleep(1)
 
-    def join_response_success(self, prev_ip, prev_port, prev_id, next_ip,
+    def join_response_success(self, id_number,
+                              prev_ip, prev_port, prev_id, next_ip,
                               next_port, next_id, second_next_ip,
                               second_next_port, second_next_id):
+        self.node.id_number = id_number
         self.prev_node = NodeProxy(prev_ip, prev_port, prev_id)
         self.next_node = NodeProxy(next_ip, next_port, next_id)
         self.second_next_node = NodeProxy(second_next_ip, second_next_port,

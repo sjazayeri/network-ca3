@@ -30,8 +30,7 @@ if __name__ == '__main__':
         node = DynamicNode(
             node_list=STATIC_NODES,
             ip=sys.argv[2],
-            port=int(sys.argv[3]),
-            id_number=int(sys.argv[4])
+            port=int(sys.argv[3])
         )
     else:
         print "Wrong flag!!"

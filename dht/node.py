@@ -43,8 +43,8 @@ class Node(object):
 
             return create_handler
 
-    def __init__(self, ip, port, id_number):
-        self.logger = setup_logger(str(id_number))
+    def __init__(self, ip, port, id_number=None):
+        self.logger = setup_logger('%s:%d'%(ip, port))
         self.dictionary = dict()
         self.tcp_server = ThreadingTCPServer(
             (ip, port),
@@ -156,6 +156,7 @@ class Node(object):
         self.next_node = NodeProxy(recipient_ip, recipient_port, id_number)
 
         self.next_node.join_response_success(
+            id_number=id_number
             prev_ip=self.node.ip,
             prev_port=self.node.port,
             prev_id=self.node.id_number,
