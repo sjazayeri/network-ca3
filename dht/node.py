@@ -95,7 +95,7 @@ class Node(object):
         else:
             self.logger.debug('self_id: %d\nprevious_id: %d\nrequested: %d\nresult: local'%
                               (self.node.id_number, self.prev_node.id_number,
-                               key)
+                               key))
             return 'local'
     
     def query(self, key, recipient_ip, recipient_port):
