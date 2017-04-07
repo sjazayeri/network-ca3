@@ -166,7 +166,7 @@ class Node(object):
         )
 
         tmp_next_node = self.next_node
-        tmp_second_next_node = self.tmp_second_next_node
+        tmp_second_next_node = self.second_next_node
         self.second_next_node = self.next_node
         self.next_node = NodeProxy(recipient_ip, recipient_port, id_number)
 
