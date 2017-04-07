@@ -9,7 +9,7 @@ def _serve_command(server_node):
     while True:
         try:
             args = raw_input().split(' ')
-            result = getattr(server_node, args[0])(*args[1:])
+            result = getattr(server_node, args[0]+'_cmd')(*args[1:])
             if result:
                 print result
         except Exception as e:

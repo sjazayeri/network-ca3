@@ -17,7 +17,8 @@ class Node(object):
         'set_second_next',
         'get_prev_node',
         'get_next_node',
-        'get_second_next_node'
+        'get_second_next_node',
+        'get_smaller_key_values'
     }
     
     class RequestHandler(BaseRequestHandler):
@@ -65,6 +66,8 @@ class Node(object):
             except Exception as e:
                 self.logger.error(e.message)
                 return {'details': "bad request"}
+        else:
+            return {'details': 'invalid method'}
         
     def set_prev_node(self, prev_node_ip, prev_node_port, prev_node_id):
         self.logger.debug(
@@ -90,7 +93,6 @@ class Node(object):
         return self.dictionary[key]
 
     def _get_movement_direction(self, key):
-        key = int(key)
         if key > self.node.id_number:
             if self.node.id_number > self.next_node.id_number:
                 return 'local'
@@ -104,7 +106,6 @@ class Node(object):
             return 'local'
     
     def query(self, key, recipient_ip, recipient_port):
-        recipient_port = int(recipient_port)
         direction = self._get_movement_direction(key)
         self.logger.debug("start query action -> %s" % direction)
         if direction == 'local':
@@ -198,7 +199,7 @@ class Node(object):
     def get_second_next_node(self):
         return self.second_next_node.to_dict()
         
-    def get_network_graph(self):
+    def get_network_graph_cmd(self):
         graph = dict()
         visited_ids = set()
         current_node = self.node
@@ -219,5 +220,14 @@ class Node(object):
     def get_smaller_key_values(self, key):
         self.logger.debug('get_smaller_key_values called with key: %d'%key)
         smaller_dict = {k: v for k, v in self.dictionary.iteritems() if k < key}
-        
+
+        self.logger.debug('\ndictionary: %s\nsmaller_dict: %s'%
+                          (str(self.dictionary), str(smaller_dict)))
+    
         return smaller_dict
+
+    def query_cmd(self, key):
+        return self.query(int(key), self.node.ip, self.node.port)
+
+    def store_cmd(self, key, value):
+        return self.store(int(key), value)
