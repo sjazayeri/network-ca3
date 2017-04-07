@@ -217,6 +217,7 @@ class Node(object):
         return graph
 
     def get_smaller_key_values(self, key):
+        self.logger.debug('get_smaller_key_values called with key: %d'%key)
         smaller_dict = {k: v for k, v in self.dictionary.iteritems() if k < key}
-
+        
         return smaller_dict

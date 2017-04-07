@@ -51,8 +51,11 @@ class DynamicNode(Node):
         self.retrieve_data()
                 
     def retrieve_data(self):
+        self.logger.debug('retrieving data')
         data = self.next_node.get_smaller_key_values(key=self.node.id_number)
-            
+        self.logger.debug('data received: %s'%str(data))
+        self.dictionary.update(data)
+        
     def join_response_success(self, id_number,
                               prev_ip, prev_port, prev_id, next_ip,
                               next_port, next_id, second_next_ip,
