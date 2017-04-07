@@ -67,12 +67,8 @@ class Node(object):
         
     def set_prev_node(self, prev_node_ip, prev_node_port, prev_node_id):
         self.logger.debug(
-            '''
-            setting previous node to:\n
-            ip: %s\n
-            port: %d\n
-            id: %d
-            ''' % (prev_node_ip, prev_node_port, prev_node_id)
+            'setting previous node to:\nip: %s\nport: %d\nid: %d' %
+            (prev_node_ip, prev_node_port, prev_node_id)
         )
         self.prev_node = NodeProxy(prev_node_ip, prev_node_port, prev_node_id)
         
@@ -133,10 +129,8 @@ class Node(object):
 
     def join(self, id_number, recipient_ip, recipient_port):
         self.logger.debug(
-            '''join with:\n
-            id: %d\n
-            ip: %s\n
-            port: %d''' % (id_number, recipient_ip, recipient_port)
+            'join with:\nid: %d\nip: %s\nport: %d'
+            % (id_number, recipient_ip, recipient_port)
         )
         recipient = NodeProxy(recipient_ip, recipient_port, id_number)
         if id_number == self.node.id_number:
