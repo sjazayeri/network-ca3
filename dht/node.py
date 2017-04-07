@@ -166,6 +166,7 @@ class Node(object):
         )
 
         tmp_next_node = self.next_node
+        tmp_second_next_node = self.tmp_second_next_node
         self.second_next_node = self.next_node
         self.next_node = NodeProxy(recipient_ip, recipient_port, id_number)
 
@@ -177,9 +178,9 @@ class Node(object):
             next_ip=tmp_next_node.ip,
             next_port=tmp_next_node.port,
             next_id=tmp_next_node.id_number,
-            second_next_ip=self.next_node.ip,
-            second_next_port=self.next_node.port,
-            second_next_id=self.next_node.id_number
+            second_next_ip=tmp_second_next_node.ip,
+            second_next_port=tmp_second_next_node.port,
+            second_next_id=tmp_second_next_node.id_number
         )
 
     def set_second_next(self, second_next_ip, second_next_port,
@@ -213,4 +214,4 @@ class Node(object):
                                                   second_next_node.id_number])
             current_node = next_node
 
-        return graph
+        return dict(graph)
