@@ -29,7 +29,7 @@ class DynamicNode(Node):
         while not self.joined:
             node_index = randint(0, len(self.node_list))
             selected_node = NodeProxy(*self.node_list[node_index])
-            _, _, next_id_number = self.node_list[node_index+1]
+            _, _, next_id_number = self.node_list[(node_index+1)%len(self.node_list)]
 
             my_id = randint(selected_node.id_number+1, next_id_number)
 
