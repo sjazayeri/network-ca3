@@ -27,7 +27,7 @@ class DynamicNode(Node):
 
     def _join_network(self):
         while not self.joined:
-            node_index = randint(0, len(self.node_list))
+            node_index = randint(0, len(self.node_list)-1)
             selected_node = NodeProxy(*self.node_list[node_index])
             _, _, next_id_number = self.node_list[(node_index+1)%len(self.node_list)]
 
