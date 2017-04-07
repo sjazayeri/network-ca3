@@ -73,6 +73,7 @@ class Node(object):
 
     def store(self, key, value):
         direction = self._get_movement_direction(key)
+        self.logger.debug("start store action -> %s" % direction)
         if direction == 'local':
             self._store_local(key, value)
         elif direction == 'next':
@@ -84,17 +85,20 @@ class Node(object):
         return self.dictionary[key]
 
     def _get_movement_direction(self, key):
+        key = int(key)
         if key > self.node.id_number:
-            if self.node.id_number > self.next_node.id:
+            if self.node.id_number > self.next_node.id_number:
                 return 'local'
             return 'next'
-        elif key < self.prev_node.id:
+        elif key < self.prev_node.id_number < self.node.id_number:
             return 'previous'
         else:
             return 'local'
     
     def query(self, key, recipient_ip, recipient_port):
+        recipient_port = int(recipient_port)
         direction = self._get_movement_direction(key)
+        self.logger.debug("start query action -> %s" % direction)
         if direction == 'local':
             NodeProxy(
                 recipient_ip,
@@ -114,7 +118,7 @@ class Node(object):
             )
                 
     def query_response(self, key, value):
-        self.logger.debug('received data'+str(key)+": "+str(value))
+        self.logger.debug('received data '+str(key)+": "+str(value))
 
     def join(self, id_number, recipient_ip, recipient_port):
         recipient = NodeProxy(recipient_ip, recipient_port, id_number)
@@ -126,7 +130,7 @@ class Node(object):
                 recipient_ip=recipient_ip,
                 recipient_port=recipient_port
             )
-        elif id_number > self.next_node.id:
+        elif id_number > self.next_node.id_number:
             self.next_node.join(
                 id_number=id_number,
                 recipient_ip=recipient_ip,

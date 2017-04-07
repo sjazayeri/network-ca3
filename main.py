@@ -9,7 +9,9 @@ def _serve_command(server_node):
     while True:
         try:
             args = raw_input().split(' ')
-            print getattr(server_node, args[0])(*args[1:])
+            result = getattr(server_node, args[0])(*args[1:])
+            if result:
+                print result
         except Exception as e:
             print "Wrong command: " + e.message
 
@@ -28,8 +30,8 @@ if __name__ == '__main__':
         node = DynamicNode(
             node_list=STATIC_NODES,
             ip=sys.argv[2],
-            port=sys.argv[3],
-            id_number=sys.argv[4]
+            port=int(sys.argv[3]),
+            id_number=int(sys.argv[4])
         )
     else:
         print "Wrong flag!!"
