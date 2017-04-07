@@ -1,5 +1,6 @@
 import json
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
+from collections import defaultdict
 
 import settings
 from node_proxy import NodeProxy
@@ -14,7 +15,8 @@ class Node(object):
         'query_response',
         'join',
         'set_second_next',
-        'get_next_node'
+        'get_next_node',
+        'get_second_next_node'
     }
     
     class RequestHandler(BaseRequestHandler):
@@ -23,8 +25,6 @@ class Node(object):
             BaseRequestHandler.__init__(self, *args, **kwargs)
 
         def handle(self):
-            self.node.logger.debug("new connection")
-            
             data = self.request.recv(settings.MAX_MESSAGE_LEN)
             request = json.loads(data)
             
@@ -33,8 +33,6 @@ class Node(object):
                 response = {}
 
             self.request.sendall(json.dumps(response))
-
-            self.node.logger.debug("connection closed")
 
         @classmethod
         def handler_factory(cls, node):
@@ -54,6 +52,8 @@ class Node(object):
         self.prev_node = None
         self.next_node = None
         self.second_next_node = None
+
+        self.logger.debug('constructed node')
         
     def dispatch(self, request):
         action = request.pop('action')
@@ -66,6 +66,14 @@ class Node(object):
                 return {'details': "bad request"}
         
     def set_prev_node(self, prev_node_ip, prev_node_port, prev_node_id):
+        self.logger.debug(
+            '''
+            setting previous node to:\n
+            ip: %s\n
+            port: %d\n
+            id: %d
+            ''' % (prev_node_ip, prev_node_port, prev_node_id)
+        )
         self.prev_node = NodeProxy(prev_node_ip, prev_node_port, prev_node_id)
         
     def _store_local(self, key, value):
@@ -124,16 +132,25 @@ class Node(object):
         self.logger.debug('received data '+str(key)+": "+str(value))
 
     def join(self, id_number, recipient_ip, recipient_port):
+        self.logger.debug(
+            '''join with:\n
+            id: %d\n
+            ip: %s\n
+            port: %d''' % (id_number, recipient_ip, recipient_port)
+        )
         recipient = NodeProxy(recipient_ip, recipient_port, id_number)
         if id_number == self.node.id_number:
+            self.logger.debug('error, duplicate id')
             recipient.join_response_failure(message='id in use')
         elif id_number < self.node.id_number:
+            self.logger.debug('passing join to prev_node')
             self.prev_node.join(
                 id_number=id_number,
                 recipient_ip=recipient_ip,
                 recipient_port=recipient_port
             )
         elif id_number > self.next_node.id_number:
+            self.logger.debug('passing join to next_node')
             self.next_node.join(
                 id_number=id_number,
                 recipient_ip=recipient_ip,
@@ -182,3 +199,24 @@ class Node(object):
             'port': self.next_node.port,
             'id_number': self.next_node.id_number
         }
+
+    def get_second_next_node(self):
+        return {
+            'ip': self.second_next_node.ip,
+            'port': self.second_next_node.port,
+            'id_number': self.second_next_node.id_number
+        }
+
+    def get_network_graph(self):
+        graph = defaultdict(lambda: [])
+        visited_ids = set()
+        current_node = self.node
+        while current_node.id_number not in visited_ids:
+            visited_ids.add(current_node.id_number)
+            next_node = NodeProxy(**current_node.get_next_node())
+            second_next_node = NodeProxy(**current_node.get_second_next_node())
+            graph[current_node.id_number].extend([next_node.id_number,
+                                                  second_next_node.id_number])
+            current_node = next_node
+
+        return graph
