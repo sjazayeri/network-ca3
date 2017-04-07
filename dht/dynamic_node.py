@@ -31,7 +31,7 @@ class DynamicNode(Node):
             selected_node = NodeProxy(*self.node_list[node_index])
             _, _, next_id_number = self.node_list[(node_index+1)%len(self.node_list)]
 
-            my_id = randint(selected_node.id_number+1, next_id_number)
+            my_id = randint(*sorted((selected_node.id_number+1, next_id_number)))
 
             self.wait_for_join_response = True
             try:
