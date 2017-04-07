@@ -21,6 +21,7 @@ class DynamicNode(Node):
 
     def run(self):
         server_thread = threading.Thread(target=self.tcp_server.serve_forever)
+        server_thread.daemon = True
         server_thread.start()
         self._join_network()
 

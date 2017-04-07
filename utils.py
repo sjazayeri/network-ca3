@@ -13,20 +13,19 @@ def read_json_file(path):
 
 
 def setup_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
     formatter = logging.Formatter(
         fmt="%(levelname)s - %(name)s - %(message)s"
     )
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
     file_handler = logging.FileHandler("%s.log" % name)
     file_handler.setFormatter(formatter)
-    
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-    logger.addHandler(file_handler)
+    # logger.addHandler(file_handler)
     return logger
 
 
