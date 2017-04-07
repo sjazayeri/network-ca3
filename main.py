@@ -1,7 +1,17 @@
 #!/usr/bin/python
 
 import sys
-from static_node import StaticNode
+from dht.static_node import StaticNode
+
+
+def _serve_command():
+    while True:
+        try:
+            args = raw_input().split(' ')
+            print getattr(node, args[0])(*args[1:])
+        except Exception as e:
+            print "Wrong command: " + e.message
+
 
 if __name__ == '__main__':
     if sys.argv[1] == '--static':
@@ -13,14 +23,11 @@ if __name__ == '__main__':
             port=int(sys.argv[6]),
             id_number=int(sys.argv[7])
         )
-        node.run()
-        
-        while True:
-            try:
-                cmd = raw_input()
-                args = cmd.split(' ')
-                print getattr(node, args[0])(*args[1:])
-            except Exception as e:
-                print 'fucked up son: '+e.message
+        try:
+            node.run()
+        except EnvironmentError:
+            sys.exit()
+
+        _serve_command()
     elif sys.argv[1] == '--dynamic':
         pass
