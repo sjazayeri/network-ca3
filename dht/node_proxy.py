@@ -16,3 +16,10 @@ class NodeProxy(object):
                 **kwargs
             )
         return remote_method
+
+    def to_dict(self):
+        return {
+            'ip': self.ip,
+            'port': self.port,
+            'id_number': self.id_number
+        }

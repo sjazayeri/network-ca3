@@ -15,6 +15,7 @@ class Node(object):
         'query_response',
         'join',
         'set_second_next',
+        'get_prev_node',
         'get_next_node',
         'get_second_next_node'
     }
@@ -188,30 +189,29 @@ class Node(object):
         self.second_next_node = NodeProxy(second_next_ip, second_next_port,
                                           second_next_id)
 
+    def get_prev_node(self):
+        return self.prev_node.to_dict()
+        
     def get_next_node(self):
-        return {
-            'ip': self.next_node.ip,
-            'port': self.next_node.port,
-            'id_number': self.next_node.id_number
-        }
+        return self.next_node.to_dict()
 
     def get_second_next_node(self):
-        return {
-            'ip': self.second_next_node.ip,
-            'port': self.second_next_node.port,
-            'id_number': self.second_next_node.id_number
-        }
-
+        return self.second_next_node.to_dict()
+        
     def get_network_graph(self):
-        graph = defaultdict(lambda: [])
+        graph = dict()
         visited_ids = set()
         current_node = self.node
         while current_node.id_number not in visited_ids:
             visited_ids.add(current_node.id_number)
+            prev_node = NodeProxy(**current_node.get_prev_node())
             next_node = NodeProxy(**current_node.get_next_node())
             second_next_node = NodeProxy(**current_node.get_second_next_node())
-            graph[current_node.id_number].extend([next_node.id_number,
-                                                  second_next_node.id_number])
+            graph[current_node.id_number] = {
+                'prev_node': prev_node.id_number,
+                'next_node': next_node.id_number,
+                'second_next_node': second_next_node.id_number
+            }
             current_node = next_node
 
-        return dict(graph)
+        return graph
