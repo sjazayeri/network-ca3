@@ -215,3 +215,8 @@ class Node(object):
             current_node = next_node
 
         return graph
+
+    def get_smaller_key_values(self, key):
+        smaller_dict = {k: v for k, v in self.dictionary.iteritems() if k < key}
+
+        return smaller_dict

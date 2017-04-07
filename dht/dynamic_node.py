@@ -48,6 +48,11 @@ class DynamicNode(Node):
             while self.wait_for_join_response:
                 time.sleep(1)
 
+        self.retrieve_data()
+                
+    def retrieve_data(self):
+        data = self.next_node.get_smaller_key_values(key=self.node.id_number)
+            
     def join_response_success(self, id_number,
                               prev_ip, prev_port, prev_id, next_ip,
                               next_port, next_id, second_next_ip,
