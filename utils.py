@@ -23,8 +23,8 @@ def setup_logger(name):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    file_handler = logging.FileHandler("%s.log" % name)
-    file_handler.setFormatter(formatter)
+    # file_handler = logging.FileHandler("%s.log" % name)
+    # file_handler.setFormatter(formatter)
     # logger.addHandler(file_handler)
     return logger
 
