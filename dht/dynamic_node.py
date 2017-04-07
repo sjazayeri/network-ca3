@@ -35,7 +35,11 @@ class DynamicNode(Node):
 
             self.wait_for_join_response = True
             try:
-                selected_node.join(id_number=my_id, recipient_ip=self.node.ip)
+                selected_node.join(
+                    id_number=my_id,
+                    recipient_ip=self.node.ip,
+                    recipient_port=self.node.port
+                )
             except IOError:
                 self.logger.error("static node %s not responding" %
                                   selected_node.id_number)
