@@ -1,9 +1,9 @@
 import json
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 
-from utils import setup_logger
-from node_proxy import NodeProxy
 import settings
+from node_proxy import NodeProxy
+from utils import setup_logger
 
 
 class Node(object):
@@ -114,7 +114,7 @@ class Node(object):
             )
                 
     def query_response(self, key, value):
-        print 'received data'+str(key)+": "+str(value)
+        self.logger.debug('received data'+str(key)+": "+str(value))
 
     def join(self, id_number, recipient_ip, recipient_port):
         recipient = NodeProxy(recipient_ip, recipient_port, id_number)

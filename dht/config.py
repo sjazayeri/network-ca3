@@ -1,1 +1,0 @@
-MAX_TRIES = 10

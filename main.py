@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from dht.static_node import StaticNode
+from dht import StaticNode, DynamicNode
 
 
 def _serve_command():
@@ -30,4 +30,5 @@ if __name__ == '__main__':
 
         _serve_command()
     elif sys.argv[1] == '--dynamic':
+        node = DynamicNode(node_list=[])
         pass
