@@ -62,7 +62,7 @@ class Node(object):
             try:
                 return getattr(self, action)(**request)
             except Exception as e:
-                self.logger.error(str(self.node.id_number)+" "+str(e.message))
+                self.logger.error(e.message)
                 return {'details': "bad request"}
         
     def set_prev_node(self, prev_node_ip, prev_node_port, prev_node_id):
