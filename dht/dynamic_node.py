@@ -33,7 +33,12 @@ class DynamicNode(Node):
             my_id = randint(selected_node.id_number+1, next_id_number)
 
             self.wait_for_join_response = True
-            selected_node.join(id_number=my_id, recipient_ip=self.node.ip)
+            try:
+                selected_node.join(id_number=my_id, recipient_ip=self.node.ip)
+            except IOError:
+                self.logger.error("static node %s not responding" %
+                                  selected_node.id_number)
+                self.wait_for_join_response = False
 
             while self.wait_for_join_response:
                 time.sleep(1)
@@ -50,3 +55,4 @@ class DynamicNode(Node):
 
     def join_response_failure(self, message):
         self.logger.debug("join failed because "+message)
+        self.wait_for_join_response = False

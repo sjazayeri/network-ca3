@@ -2,13 +2,14 @@
 
 import sys
 from dht import StaticNode, DynamicNode
+from config import STATIC_NODES
 
 
-def _serve_command():
+def _serve_command(server_node):
     while True:
         try:
             args = raw_input().split(' ')
-            print getattr(node, args[0])(*args[1:])
+            print getattr(server_node, args[0])(*args[1:])
         except Exception as e:
             print "Wrong command: " + e.message
 
@@ -23,12 +24,20 @@ if __name__ == '__main__':
             port=int(sys.argv[6]),
             id_number=int(sys.argv[7])
         )
-        try:
-            node.run()
-        except EnvironmentError:
-            sys.exit()
-
-        _serve_command()
     elif sys.argv[1] == '--dynamic':
-        node = DynamicNode(node_list=[])
-        pass
+        node = DynamicNode(
+            node_list=STATIC_NODES,
+            ip=sys.argv[2],
+            port=sys.argv[3],
+            id_number=sys.argv[4]
+        )
+    else:
+        print "Wrong flag!!"
+        sys.exit()
+
+    try:
+        node.run()
+    except EnvironmentError:
+        sys.exit()
+
+    _serve_command(node)
