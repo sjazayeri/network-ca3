@@ -307,6 +307,7 @@ class Node(object):
         for i in xrange(n_chunks):
             response = peers[current_peer].get_chunk(filename, i)
             file_data.append(response['data'])
+            current_peer = (current_peer+1)%len(peers)
 
         with open(filename, 'wb') as f:
             f.write(''.join(file_data))
