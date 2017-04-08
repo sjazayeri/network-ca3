@@ -2,6 +2,7 @@ import logging
 import json
 import socket
 import time
+import hashlib
 
 import settings
 
@@ -46,3 +47,11 @@ def call_remote_function(host, function, max_tries=3, delay=1,
             delay += backoff
             
     raise IOError('remote function call failed')
+
+
+def get_file_key(filename, key_mod):
+    filename_hexdigest = hashlib.md5(filename).hexdigest()
+    filename_hash_value = int(filename_hexdigest, base=16)
+    file_key = filename_hash_value%key_mod
+
+    return file_key
