@@ -20,7 +20,8 @@ class Node(object):
         'get_prev_node',
         'get_next_node',
         'get_second_next_node',
-        'get_smaller_key_values'
+        'get_smaller_key_values',
+        'get_chunk'
     }
     
     class RequestHandler(BaseRequestHandler):
