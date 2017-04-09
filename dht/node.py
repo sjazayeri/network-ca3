@@ -80,7 +80,7 @@ class Node(object):
             try:
                 return getattr(self, action)(**request)
             except Exception as e:
-                self.logger.error(e.message)
+                self.logger.error("%s: %s" % (type(e), e.message))
                 return {'details': "bad request"}
         else:
             return {'details': 'invalid method'}
