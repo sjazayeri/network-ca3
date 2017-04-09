@@ -226,3 +226,5 @@ Session.vim
 .netrwhist
 # auto-generated tag files
 tags
+
+workdirs 

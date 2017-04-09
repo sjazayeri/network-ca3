@@ -13,7 +13,7 @@ def _serve_command(server_node):
             if result:
                 print result
         except Exception as e:
-            print "Wrong command: " + e.message
+            "Something went wrong %s: %s" % (type(e), e.message)
 
 
 if __name__ == '__main__':

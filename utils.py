@@ -30,19 +30,29 @@ def setup_logger(name):
     return logger
 
 
-def call_remote_function(host, function, max_tries=3, delay=1,
+logger = setup_logger(__name__)
+
+
+def call_remote_function(host, function, response_type='json', time_out=None, max_tries=3, delay=1,
                          backoff=5, **kwargs):
     tries = 0
     while tries < max_tries:
         try:
             connection = socket.create_connection(host)
+            if time_out:
+                connection.settimeout(time_out)
+
             kwargs['action'] = function
             connection.sendall(json.dumps(kwargs))
             response = connection.recv(settings.MAX_MESSAGE_LEN)
             connection.close()
-            return json.loads(response)
-        except Exception:
+
+            return json.loads(response) if \
+                response_type is 'json' else response
+
+        except Exception as e:
             tries += 1
+            logger.debug(str(type(e)) + e.message)
             time.sleep(delay)
             delay += backoff
             

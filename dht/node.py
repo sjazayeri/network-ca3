@@ -38,7 +38,10 @@ class Node(object):
             if response is None:
                 response = {}
 
-            self.request.sendall(json.dumps(response))
+            message = json.dumps(response) if \
+                isinstance(response, dict) else response
+
+            self.request.sendall(message)
 
         @classmethod
         def handler_factory(cls, node):
@@ -288,9 +291,10 @@ class Node(object):
             f.seek(chunk_number*settings.CHUNK_SIZE)
             data = f.read(settings.CHUNK_SIZE)
 
-        self.logger.debug("send chunk %d" % chunk_number)
-        return {'data': data}
-        
+        self.logger.debug("sending chunk %d" % chunk_number)
+        self.logger.debug("encoding")
+        return data
+
     def download_file_cmd(self, torrent_file_path):
         torrent_file_path = os.path.join(self.work_dir, torrent_file_path)
         with open(torrent_file_path, 'r') as f:
@@ -314,12 +318,19 @@ class Node(object):
         peers = [NodeProxy(value['ip'], value['port']) for value in
                  possible_peers if value['filename'] == filename]
 
+        if not peers:
+            raise ValueError("file not found")
+
         file_data = []
         current_peer = 0
         for i in xrange(n_chunks):
-            response = peers[current_peer].get_chunk(filename=filename,
-                                                     chunk_number=i)
-            file_data.append(response['data'])
+            self.logger.debug('receiving chunk %d' % i)
+            response = peers[current_peer].get_chunk(
+                response_type='raw_response',
+                filename=filename,
+                chunk_number=i
+            )
+            file_data.append(response)
             self.logger.debug("received chunk %d" % i)
             current_peer = (current_peer+1) % len(peers)
 
