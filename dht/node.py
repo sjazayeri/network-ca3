@@ -1,6 +1,7 @@
 import json
 import os
 import hashlib
+import threading
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 from collections import defaultdict
 
@@ -46,11 +47,12 @@ class Node(object):
 
             return create_handler
 
-    def __init__(self, ip, port, id_number=None):
+    def __init__(self, work_dir, ip, port, id_number=None):
         self.logger = setup_logger('%s:%d'%(ip, port))
         self.dictionary = defaultdict(lambda: [])
         self.received_data = dict()
         self.received = threading.Event()
+        self.work_dir = work_dir
         self.tcp_server = ThreadingTCPServer(
             (ip, port),
             Node.RequestHandler.handler_factory(self)
@@ -84,6 +86,7 @@ class Node(object):
         self.prev_node = NodeProxy(prev_node_ip, prev_node_port, prev_node_id)
         
     def _store_local(self, key, value):
+        self.logger.debug("setting %d: %s"%(key, str(value)))
         self.dictionary[key].append(value)
 
     def store(self, key, value):
@@ -135,6 +138,7 @@ class Node(object):
                 
     def query_response(self, key, value):
         self.received_data[key] = value
+        self.received.set()
         self.logger.debug('received data '+str(key)+": "+str(value))
         
         
@@ -242,7 +246,8 @@ class Node(object):
         return self.store(int(key), value)
 
     def register_file_cmd(self, filepath):
-        filename = os.path.split()[1]
+        filepath = os.path.join(self.work_dir, filepath)
+        filename = os.path.split(filepath)[1]
 
         self.file_paths[filename] = filepath
         
@@ -252,14 +257,14 @@ class Node(object):
         file_md5 = hashlib.md5()
         with open(filepath, 'r') as f:
             while True:
-                data = f.read(settigns.CHUNK_SIZE)
-                n_chunks += 1
+                data = f.read(settings.CHUNK_SIZE)
                 if not data:
                     break
+                n_chunks += 1
                 file_md5.update(data)
                 
         file_hexdigest = file_md5.hexdigest()
-        with open(filename+'.torrent', 'w') as f:
+        with open(filepath+'.torrent', 'w') as f:
             file_content = map(str, [filename, filename_hexdigest,
                                      n_chunks, file_hexdigest])
             f.write('\n'.join(file_content))
@@ -277,22 +282,28 @@ class Node(object):
         )
 
     def get_chunk(self, filename, chunk_number):
-        filepath = self.file_path[filename]
-        with open(filename, 'rb') as f:
+        filepath = self.file_paths[filename]
+        self.logger.debug(filepath)
+        with open(filepath, 'rb') as f:
             f.seek(chunk_number*settings.CHUNK_SIZE)
             data = f.read(settings.CHUNK_SIZE)
+            self.logger.debug(str(data))
 
         return {'data': data}
         
     def download_file_cmd(self, torrent_filepath):
+        torrent_filepath = os.path.join(self.work_dir, torrent_filepath)
         with open(torrent_filepath, 'r') as f:
-            lines = f.readline()
+            lines = f.readlines()
 
-        filename = lines[0]
-        n_chunks = lines[2]
+        self.logger.debug(lines)
+            
+        filename = lines[0].strip()
+        n_chunks = int(lines[2])
 
         file_key = get_file_key(filename, settings.KEY_MOD)
 
+        self.received.clear()
         self.query_cmd(file_key)
         self.received.wait()
 
@@ -306,10 +317,14 @@ class Node(object):
         file_data = []
         current_peer = 0
         for i in xrange(n_chunks):
-            response = peers[current_peer].get_chunk(filename, i)
+            response = peers[current_peer].get_chunk(filename=filename, chunk_number=i)
+            self.logger.debug('get_chunk: %s'%str(response))
             file_data.append(response['data'])
             current_peer = (current_peer+1)%len(peers)
 
-        with open(filename, 'wb') as f:
+        filepath = os.path.join(self.work_dir, filename)
+        with open(filepath, 'wb') as f:
             f.write(''.join(file_data))
+
+        self.register_file_cmd(filename)
 

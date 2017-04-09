@@ -24,13 +24,15 @@ if __name__ == '__main__':
             next_node_id=int(sys.argv[4]),
             ip=sys.argv[5],
             port=int(sys.argv[6]),
-            id_number=int(sys.argv[7])
+            id_number=int(sys.argv[7]),
+            work_dir=sys.argv[8]
         )
     elif sys.argv[1] == '--dynamic':
         node = DynamicNode(
             node_list=STATIC_NODES,
             ip=sys.argv[2],
-            port=int(sys.argv[3])
+            port=int(sys.argv[3]),
+            work_dir=sys.argv[4]
         )
     else:
         print "Wrong flag!!"
