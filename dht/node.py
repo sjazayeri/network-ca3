@@ -22,7 +22,11 @@ class Node(object):
         'get_next_node',
         'get_second_next_node',
         'get_smaller_key_values',
-        'get_chunk'
+        'get_chunk',
+        
+        'get_network_graph_cmd',
+        'register_file_cmd',
+        'download_file_cmd'
     }
     
     class RequestHandler(BaseRequestHandler):
