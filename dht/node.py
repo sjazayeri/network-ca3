@@ -48,7 +48,7 @@ class Node(object):
             return create_handler
 
     def __init__(self, work_dir, ip, port, id_number=None):
-        self.logger = setup_logger('%s:%d'%(ip, port))
+        self.logger = setup_logger('%s:%d' % (ip, port))
         self.dictionary = defaultdict(lambda: [])
         self.received_data = dict()
         self.received = threading.Event()
@@ -86,7 +86,7 @@ class Node(object):
         self.prev_node = NodeProxy(prev_node_ip, prev_node_port, prev_node_id)
         
     def _store_local(self, key, value):
-        self.logger.debug("setting %d: %s"%(key, str(value)))
+        self.logger.debug("setting %d: %s" % (key, str(value)))
         self.dictionary[key].append(value)
 
     def store(self, key, value):
@@ -110,9 +110,10 @@ class Node(object):
         elif key < self.prev_node.id_number < self.node.id_number:
             return 'previous'
         else:
-            self.logger.debug('self_id: %d\nprevious_id: %d\nrequested: %d\nresult: local'%
-                              (self.node.id_number, self.prev_node.id_number,
-                               key))
+            self.logger.debug(
+                'self_id: %d\nprevious_id: %d\nrequested: %d\nresult: local' %
+                (self.node.id_number, self.prev_node.id_number, key)
+            )
             return 'local'
     
     def query(self, key, recipient_ip, recipient_port):
@@ -140,7 +141,6 @@ class Node(object):
         self.received_data[key] = value
         self.received.set()
         self.logger.debug('received data '+str(key)+": "+str(value))
-        
         
     def join(self, id_number, recipient_ip, recipient_port):
         self.logger.debug(
@@ -231,10 +231,11 @@ class Node(object):
         return graph
 
     def get_smaller_key_values(self, key):
-        self.logger.debug('get_smaller_key_values called with key: %d'%key)
-        smaller_dict = {k: v for k, v in self.dictionary.iteritems() if k < key}
+        self.logger.debug('get_smaller_key_values called with key: %d' % key)
+        smaller_dict = {k: v for k, v in self.dictionary.iteritems()
+                        if k < key}
 
-        self.logger.debug('\ndictionary: %s\nsmaller_dict: %s'%
+        self.logger.debug('\ndictionary: %s\nsmaller_dict: %s' %
                           (str(self.dictionary), str(smaller_dict)))
     
         return smaller_dict
@@ -245,17 +246,17 @@ class Node(object):
     def store_cmd(self, key, value):
         return self.store(int(key), value)
 
-    def register_file_cmd(self, filepath):
-        filepath = os.path.join(self.work_dir, filepath)
-        filename = os.path.split(filepath)[1]
+    def register_file_cmd(self, file_path):
+        file_path = os.path.join(self.work_dir, file_path)
+        filename = os.path.split(file_path)[1]
 
-        self.file_paths[filename] = filepath
+        self.file_paths[filename] = file_path
         
-        filename_hexdigest = hashlib.md5(filename).hexdigest()
+        filename_hex_digest = hashlib.md5(filename).hexdigest()
         
         n_chunks = 0
         file_md5 = hashlib.md5()
-        with open(filepath, 'r') as f:
+        with open(file_path, 'r') as f:
             while True:
                 data = f.read(settings.CHUNK_SIZE)
                 if not data:
@@ -263,13 +264,12 @@ class Node(object):
                 n_chunks += 1
                 file_md5.update(data)
                 
-        file_hexdigest = file_md5.hexdigest()
-        with open(filepath+'.torrent', 'w') as f:
-            file_content = map(str, [filename, filename_hexdigest,
-                                     n_chunks, file_hexdigest])
+        file_hex_digest = file_md5.hexdigest()
+        with open(file_path + '.torrent', 'w') as f:
+            file_content = map(str, [filename, filename_hex_digest,
+                                     n_chunks, file_hex_digest])
             f.write('\n'.join(file_content))
 
-        filename_hash_value = int(filename_hexdigest, base=16)
         file_key = get_file_key(filename, settings.KEY_MOD)
 
         self.store_cmd(
@@ -282,18 +282,18 @@ class Node(object):
         )
 
     def get_chunk(self, filename, chunk_number):
-        filepath = self.file_paths[filename]
-        self.logger.debug(filepath)
-        with open(filepath, 'rb') as f:
+        file_path = self.file_paths[filename]
+        self.logger.debug(file_path)
+        with open(file_path, 'rb') as f:
             f.seek(chunk_number*settings.CHUNK_SIZE)
             data = f.read(settings.CHUNK_SIZE)
-            self.logger.debug(str(data))
 
+        self.logger.debug("send chunk %d" % chunk_number)
         return {'data': data}
         
-    def download_file_cmd(self, torrent_filepath):
-        torrent_filepath = os.path.join(self.work_dir, torrent_filepath)
-        with open(torrent_filepath, 'r') as f:
+    def download_file_cmd(self, torrent_file_path):
+        torrent_file_path = os.path.join(self.work_dir, torrent_file_path)
+        with open(torrent_file_path, 'r') as f:
             lines = f.readlines()
 
         self.logger.debug(lines)
@@ -317,14 +317,14 @@ class Node(object):
         file_data = []
         current_peer = 0
         for i in xrange(n_chunks):
-            response = peers[current_peer].get_chunk(filename=filename, chunk_number=i)
-            self.logger.debug('get_chunk: %s'%str(response))
+            response = peers[current_peer].get_chunk(filename=filename,
+                                                     chunk_number=i)
             file_data.append(response['data'])
-            current_peer = (current_peer+1)%len(peers)
+            self.logger.debug("received chunk %d" % i)
+            current_peer = (current_peer+1) % len(peers)
 
-        filepath = os.path.join(self.work_dir, filename)
-        with open(filepath, 'wb') as f:
+        file_path = os.path.join(self.work_dir, filename)
+        with open(file_path, 'wb') as f:
             f.write(''.join(file_data))
 
         self.register_file_cmd(filename)
-

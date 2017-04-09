@@ -29,9 +29,11 @@ class DynamicNode(Node):
         while not self.joined:
             node_index = randint(0, len(self.node_list)-1)
             selected_node = NodeProxy(*self.node_list[node_index])
-            _, _, next_id_number = self.node_list[(node_index+1)%len(self.node_list)]
+            _, _, next_id_number = self.node_list[(node_index+1) %
+                                                  len(self.node_list)]
 
-            my_id = randint(*sorted((selected_node.id_number+1, next_id_number)))
+            my_id = randint(*sorted((selected_node.id_number+1,
+                                     next_id_number)))
 
             self.wait_for_join_response = True
             try:
@@ -53,14 +55,14 @@ class DynamicNode(Node):
     def retrieve_data(self):
         self.logger.debug('retrieving data')
         data = self.next_node.get_smaller_key_values(key=self.node.id_number)
-        self.logger.debug('data received: %s'%str(data))
+        self.logger.debug('data received: %s' % str(data))
         self.dictionary.update(data)
         
     def join_response_success(self, id_number,
                               prev_ip, prev_port, prev_id, next_ip,
                               next_port, next_id, second_next_ip,
                               second_next_port, second_next_id):
-        self.logger.debug("join successful, id: %d"%id_number)
+        self.logger.debug("join successful, id: %d" % id_number)
         self.node.id_number = id_number
         self.prev_node = NodeProxy(prev_ip, prev_port, prev_id)
         self.next_node = NodeProxy(next_ip, next_port, next_id)
